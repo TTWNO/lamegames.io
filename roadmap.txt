@@ -1,0 +1,14 @@
+1. Template
+a. login page (User Blueprint)
+b. register page (User Blueprint)
+c. game list page (Game Blueprint)
+NO CSS, No server side impl.
+
+2. Implement
+a. login
+b. logout
+c. basic guessing game (user gives a number to guess; other user must guess it)
+d. register
+e. clue
+
+3. CSS
