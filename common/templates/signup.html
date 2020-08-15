@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+{% block title %}Sign Up{% endblock %}
+
+{% block body %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Sign Up">
+</form>
+{% endblock %}
