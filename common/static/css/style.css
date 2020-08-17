@@ -1,0 +1,17 @@
+body {
+    background-color: #eee;
+    line-height: 1.4em;
+}
+
+#wrapper {
+    width: 70%;
+    margin: auto;
+}
+
+a {
+    color: #27a;
+}
+
+a:visited {
+    color: #941452;
+}
