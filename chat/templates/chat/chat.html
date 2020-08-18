@@ -10,9 +10,11 @@ Chat
     {{ room_name|json_script:"room-name" }}
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const WSProtocol = window.location.protocol === "https:" ? "wss" : "ws";
 
         const chatSocket = new WebSocket(
-            'wss://'
+            WSProtocol
+            + '://'
             + window.location.host
             + '/ws/chat/'
             + roomName
