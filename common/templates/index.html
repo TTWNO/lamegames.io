@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends 'common/master.html' %}
 
 {% block title %}
 {% if user.is_authenticated %}
@@ -13,7 +13,11 @@
     <p>Welcome, {{ user.username }}!</p>
     <p>Email: {{ user.email }}.</p>
     <a href="{% url 'chat' %}">Chat</a>
+    <br>
+    <a href="{% url 'rps' %}">Rock, Paper, Scissors</a>
+    <br>
     <a href="{% url 'logout' %}">Logout</a>
+    <br>
 {% else %}
     <a href="{% url 'login' %}">Login</a>
     <br>
