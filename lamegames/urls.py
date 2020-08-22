@@ -17,7 +17,9 @@ from django.contrib import admin
 from django.urls import path, re_path, include
 
 import chat
+import games
 from chat import consumers
+from games import consumers
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,4 +30,5 @@ urlpatterns = [
 
 websocket_urlpatterns = [
     re_path(r'ws/chat/(?P<room_name>\w+)/$', chat.consumers.ChatConsumer),
+    path('rps/', games.consumers.RPSConsumer)
 ]
