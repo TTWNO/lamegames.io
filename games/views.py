@@ -15,11 +15,4 @@ def rps_join(request, room_id):
     return render(request, 'games/rps/rps.html', {'ROOM_ID': room_id})
 
 def rps_create(request):
-    username = request.user.username
-    
-    room = Room(game="rps", id=username)
-    active_user = ActiveUser(username=username, room=room)
-    room.save()
-    active_user.save()
-
-    return redirect(reverse('rps/join', args=[username]))
+    return redirect(reverse('rps/join', args=[request.user.username]))
