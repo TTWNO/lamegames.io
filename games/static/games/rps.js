@@ -7,6 +7,24 @@ const RPSSocket = new WebSocket(
     + ROOM_ID
 );
 
+const create_status = () => {
+    var status = document.createElement("p");
+    status.id = "status";
+    wrp = document.getElementById("wrapper");
+    wrp.appendChild(status);
+}
+
+const write_message = (mess) => {
+    let status = document.getElementById("status");
+    if (!status)
+    {
+        create_status();
+        status = document.getElementById("status");
+    }
+    status.innerHTML = mess;
+    status.focus(); 
+}
+
 RPSSocket.onmessage = function(e) {
     console.log("Receiving...");
     console.log(e.data);
@@ -16,13 +34,13 @@ RPSSocket.onmessage = function(e) {
     message = data.message;
     if (data.event === 'warning')
     {
-        alert(message);
+        write_message(message);
     } else if (data.event == 'game_over') {
         if (message === 'tie')
         {
-            alert("Tie!");
+            write_message('Tie!')
         } else {
-            alert("The winner is: " + message.winner);
+            write_message("The winner is: " + message.winner);
         }
     }
 }
@@ -30,7 +48,10 @@ RPSSocket.onmessage = function(e) {
 for (btn of document.querySelectorAll(".rpsbtn"))
 {
     btn.addEventListener('click', e => {
-        alert("You pressed " + e.target.id);
+        create_status();
+        let status = document.getElementById("status");
+        status.innerHTML = "You pressed " + e.target.id;
+        status.focus();
         RPSSocket.send(
             JSON.stringify({
                 'choice': e.target.id
