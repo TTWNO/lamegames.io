@@ -5,6 +5,7 @@
         <title>{% block title %}{% endblock %}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link type="text/css" rel="stylesheet" href="{% static 'common/css/style.css' %}">
+        {% block headextra %}{% endblock %}
     </head>
     <body>
         <div id="wrapper">
