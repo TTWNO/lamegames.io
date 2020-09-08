@@ -27,4 +27,7 @@ a:visited {
 /* for game logs */
 #logbox {
     font-family: monospace;
+    background-color: white;
+    overflow-y: scroll;
+    max-height: 10em;
 }
