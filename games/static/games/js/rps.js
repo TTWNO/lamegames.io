@@ -26,14 +26,11 @@ RPSSocket.onmessage = function(e) {
     message = data.message;
     if (data.event === 'warning')
     {
-        write_message(message);
-    } else if (data.event == 'game_over') {
-        if (message === 'tie')
-        {
-            write_message('Tie!')
-        } else {
-            write_message("The winner is: " + message.winner);
-        }
+      write_message(message);
+    } else if (data.event === 'game_over') {
+      write_message("<b>" + message + "</b>");
+    } else if (data.event === 'info') {
+      write_message("<i>" + message + "</i>");
     }
 }
 

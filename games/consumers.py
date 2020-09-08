@@ -4,9 +4,19 @@ from asgiref.sync import async_to_sync
 from .models import Room, ActiveUser, RPSMove
 
 class RPSConsumer(WebsocketConsumer):
+
+    def group_send(self, message, event='info'):
+        async_to_sync(self.channel_layer.group_send)(
+            self.id,
+            {
+                'type': 'send_all',
+                'event': event,
+                'message': message
+            }
+        )
+
     def connect(self):
         self.game_name = "RPS"
-
         # Check if room with ID already exists
         self.room_id = self.scope['path'].split('/')[-1]
         rooms_with_id = Room.objects.filter(id=self.room_id)
@@ -26,6 +36,8 @@ class RPSConsumer(WebsocketConsumer):
         self.active_user = ActiveUser.objects.create(username=self.scope['user'].username, channel=self.channel_name, room=self.room)
 
         self.id = self.scope['url_route']['kwargs']['id']
+        # tell everyone who will join on the next line :)
+        self.group_send("{0} joined!".format(self.scope['user'].username))
         # add group channel
         async_to_sync(self.channel_layer.group_add)(
             self.id,
@@ -41,6 +53,7 @@ class RPSConsumer(WebsocketConsumer):
             self.room.delete()
             print("Deleted room")
         
+        self.group_send("{0} left!".format(self.scope['user'].username))
         # remove this (now defunct) socket from the channel layer gorup
         async_to_sync(self.channel_layer.group_discard)(
             self.id,
@@ -76,32 +89,9 @@ class RPSConsumer(WebsocketConsumer):
                 pass
         
         if winner == 0:
-            async_to_sync(self.channel_layer.group_send)(
-                self.id,
-                {
-                    'type': 'group_send',
-                    'event': 'game_over',
-                    'message': 'tie'
-                }
-            )
-        elif winner == 1:
-            async_to_sync(self.channel_layer.group_send)(
-                self.id,
-                {
-                    'type': 'group_send',
-                    'event': 'game_over',
-                    'message': {'winner': moves[0].user.username},
-                }
-            )
-        elif winner == 2:
-            async_to_sync(self.channel_layer.group_send)(
-                self.id,
-                {
-                    'type': 'group_send',
-                    'event': 'game_over',
-                    'message': {'winner': moves[1].user.username}
-                }
-            )
+            self.group_send('tie', event='game_over')
+        else:
+            self.group_send("{0} played {1}.<br>{2} played {3}.<br>{4} won!".format(moves[0].user.username, moves[0].choice, moves[1].user.username, moves[1].choice, moves[winner-1].user.username), event='game_over')
 
     def already_made_move(self):
         self.send(text_data=json.dumps({
@@ -118,16 +108,12 @@ class RPSConsumer(WebsocketConsumer):
         moves_for_room = RPSMove.objects.filter(room=self.room)
         # if no moves
         if len(moves_for_room) == 0:
-            print("No moves")
             move = RPSMove.objects.create(room=self.room, user=self.active_user, choice=choice)
-            print("Adding one move")
+            self.group_send("{0} has played!".format(self.scope['user'].username))
         elif len(moves_for_room) == 1:
-            print("One move")
             # if only one other move was made, and it was made by somebody else
             if moves_for_room[0].user != self.active_user:
-                print("Other user did move.")
                 move = RPSMove.objects.create(room=self.room, user=self.active_user, choice=choice)
-                print("Made move")
                 self.game_over()
                 self.clear_moves()
             else:
@@ -136,7 +122,7 @@ class RPSConsumer(WebsocketConsumer):
             # two or more moves defined: must clear all of them... shouldn't be run in theory
             self.clear_moves()
 
-    def group_send(self, event):
+    def send_all(self, event):
         self.send(text_data=json.dumps(
             {
                 'event': event['event'],
