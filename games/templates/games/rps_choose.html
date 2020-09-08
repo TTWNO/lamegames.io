@@ -1,0 +1,7 @@
+{% extends 'common/master.html' %}
+{% load static %}
+
+{% block body %}
+<a href="{% url 'rps/create' %}">Create New Room</a>
+<a href="{% url 'rps/join' %}">Join</a>
+{% endblock %}
