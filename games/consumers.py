@@ -19,6 +19,9 @@ class RPSConsumer(WebsocketConsumer):
             self.room = Room.objects.create(id=self.room_id, game=self.game_name, game_name="Rock, Paper, Scissors")
             self.room.save()
             print("New Room")
+        # Remove user from any old rooms
+        ActiveUser.objects.filter(username=self.scope['user'].username).delete()
+
         # Add user to the new/existing room
         self.active_user = ActiveUser.objects.create(username=self.scope['user'].username, channel=self.channel_name, room=self.room)
 
@@ -32,6 +35,7 @@ class RPSConsumer(WebsocketConsumer):
     
     def disconnect(self, close_code):
         self.active_user.delete()
+        print("Deleted user")
         # Remove room if no more active users in room
         if len(self.room.active_users.all()) == 0:
             self.room.delete()
