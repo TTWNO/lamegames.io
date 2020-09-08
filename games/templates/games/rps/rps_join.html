@@ -1,0 +1,25 @@
+{% extends 'common/master.html' %}
+
+{% block body %}
+<form method="POST">
+    <label for="rid">Room ID:</label>
+    <input name="rid" id="rid" type="text" value="">
+    {% csrf_token %}
+    <input type="submit" value="Join">
+</form>
+{% for room in all_rooms %}
+<div class="gameinfo">
+    <label for="gamename-{{ room.id }}">Game:</label>
+    <span id="gamename-{{ room.id }}">{{ room.game_name }}</span>
+    <br>
+    <label for="gameplayers-{{ room.id }}">Players:</label>
+    {# dependent on ActiveUser.__str__() TODO: remove dependency upon that working. #}
+    <span id="gameplayers-{{ room.id }}">{{ room.active_users.all | join:"," }}</span>
+    <br>
+    <label for="gameid-{{ room.id }}">ID:</label>
+    <span id="gameid-{{ room.id }}">{{ room.id }}</span>
+    <br>
+    <a href="{% url 'rps/join' room.id %}">Join Game</a>
+</div>
+{% endfor %}
+{% endblock %}

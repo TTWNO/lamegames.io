@@ -1,14 +1,19 @@
 {% extends 'common/master.html' %}
 {% load static %}
 
+{% block headextra %}
+<link rel="stylesheet" href="{% static 'games/css/gamestyle.css' %}">
+{% endblock %}
+
 {% block body %}
 Welcome to a new game!
 <br>
 <button class="rpsbtn" id="rock">Rock</button>
 <button class="rpsbtn" id="paper">Paper</button>
 <button class="rpsbtn" id="scissors">Scissors</button>
+{% include 'games/gamelog.html' %}
 <script>
     ROOM_ID = "{{ ROOM_ID }}";
 </script>
-<script src="{% static 'games/rps.js' %}"></script>
+<script src="{% static 'games/js/rps.js' %}"></script>
 {% endblock %}
