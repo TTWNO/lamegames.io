@@ -6,16 +6,6 @@ const RPSSocket = new WebSocket(
     + '/rps/'
     + ROOM_ID
 );
-const STATUS_BOX = document.getElementById("logbox");
-
-const write_message = (mess) => {
-    STATUS_BOX.innerHTML += mess + "<br>";
-    STATUS_BOX.scrollTop = STATUS_BOX.scrollHeight;
-}
-const clear_statusbox = () => {
-    STATUS_BOX.innerHTML = '';
-    write_message('<i>Status Cleared</i>');
-}
 
 RPSSocket.onmessage = function(e) {
     console.log("Receiving...");
