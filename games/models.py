@@ -1,5 +1,6 @@
 import json
 from django.db import models
+from common.models import LameUser
 
 # Create your models here.
 
@@ -31,3 +32,4 @@ class MinesweeperCell(models.Model):
 
 class MinesweeperBoard(models.Model):
     cells = models.ForeignKey(MinesweeperCell, on_delete=models.CASCADE, related_name="board")
+    user = models.OneToOneField(LameUser, on_delete=models.CASCADE)
