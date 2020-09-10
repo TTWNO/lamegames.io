@@ -13,6 +13,8 @@ class Room(models.Model):
         return JSON.dumps({'game': self.game})
 
 class ActiveUser(models.Model):
+    user = models.OneToOneField(LameUser, on_delete=models.CASCADE)
+    # TODO: Remove dependence on username field here as ActiveUser is now connected to the user proper
     username = models.CharField(max_length=32)
     channel = models.CharField(max_length=128)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='active_users')
@@ -32,4 +34,4 @@ class MinesweeperCell(models.Model):
 
 class MinesweeperBoard(models.Model):
     cells = models.ForeignKey(MinesweeperCell, on_delete=models.CASCADE, related_name="board")
-    user = models.OneToOneField(LameUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(ActiveUser, on_delete=models.CASCADE)
