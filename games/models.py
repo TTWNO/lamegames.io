@@ -12,6 +12,7 @@ class Room(models.Model):
     def toJson(self):
         return JSON.dumps({'game': self.game})
 
+# TODO: Remove ActiveUser; add 'active' portion of standard LameUser
 class ActiveUser(models.Model):
     user = models.OneToOneField(LameUser, on_delete=models.CASCADE)
     # TODO: Remove dependence on username field here as ActiveUser is now connected to the user proper
