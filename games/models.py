@@ -24,3 +24,10 @@ class RPSMove(models.Model):
     user = models.ForeignKey(ActiveUser, on_delete=models.CASCADE)
     choice = models.CharField(max_length=8)
 
+class MinesweeperCell(models.Model):
+    shown = models.BooleanField(default=False)
+    bomb = models.BooleanField()
+    bombs_next = models.SmallIntegerField()
+
+class MinesweeperBoard(models.Model):
+    cells = models.ForeignKey(MinesweeperCell, on_delete=models.CASCADE, related_name="board")
