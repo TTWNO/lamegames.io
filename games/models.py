@@ -12,11 +12,8 @@ class Room(models.Model):
     def toJson(self):
         return JSON.dumps({'game': self.game})
 
-# TODO: Remove ActiveUser; add 'active' portion of standard LameUser
 class ActiveUser(models.Model):
     user = models.OneToOneField(LameUser, on_delete=models.CASCADE)
-    # TODO: Remove dependence on username field here as ActiveUser is now connected to the user proper
-    username = models.CharField(max_length=32)
     channel = models.CharField(max_length=128)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='active_users')
 
@@ -28,11 +25,51 @@ class RPSMove(models.Model):
     user = models.ForeignKey(ActiveUser, on_delete=models.CASCADE)
     choice = models.CharField(max_length=8)
 
+class MinesweeperBoard(models.Model):
+    class Status(models.IntegerChoices):
+        IN_PROGRESS = 0
+        LOST = 1
+        WON = 2
+    
+    user = models.OneToOneField(LameUser, on_delete=models.CASCADE)
+    status = models.IntegerField(choices=Status.choices, default=Status.IN_PROGRESS)
+
+    def is_game_over(self):
+        return self.status in [self.Status.LOST, self.Status.WON]
+
 class MinesweeperCell(models.Model):
     shown = models.BooleanField(default=False)
     bomb = models.BooleanField()
+    flagged = models.BooleanField(default=False)
     bombs_next = models.SmallIntegerField()
+    x = models.SmallIntegerField()
+    y = models.SmallIntegerField()
+    board = models.ForeignKey(MinesweeperBoard, on_delete=models.CASCADE, related_name='cells')
 
-class MinesweeperBoard(models.Model):
-    cells = models.ForeignKey(MinesweeperCell, on_delete=models.CASCADE, related_name="board")
-    user = models.OneToOneField(ActiveUser, on_delete=models.CASCADE)
+    # NOTE: For dev purposes only
+    def __str__(self):
+        return json.dumps({
+            'x': self.x,
+            'y': self.y,
+            'flagged': self.flagged,
+            'shown': self.shown,
+            'bomb': self.bomb
+        })
+
+    def as_dict(self):
+        return {
+            'x': self.x,
+            'y': self.y,
+            'bombs_next': self.bombs_next,
+            'flagged': self.flagged,
+            'shown': self.shown
+        }
+    def as_full_dict(self):
+        return {
+            'x': self.x,
+            'y': self.y,
+            'bombs_next': self.bombs_next,
+            'flagged': self.flagged,
+            'shown': self.shown,
+            'bomb': self.bomb
+        }

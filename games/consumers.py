@@ -1,10 +1,210 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from .models import Room, ActiveUser, RPSMove
+from .models import Room, ActiveUser, RPSMove, MinesweeperBoard, MinesweeperCell
+from common.models import LameUser
+import random
+
+class MinesweeperConsumer(WebsocketConsumer):
+    def did_win(self):
+        flagged = list(self.board.cells.filter(flagged=True))
+        bombs = list(self.board.cells.filter(bomb=True))
+        if flagged == bombs:
+            self.send(json.dumps({
+                'type': 'message',
+                'message': '<b>You win!</b>'
+            }))
+            self.board.status = self.board.Status.WON
+            self.board.save()
+
+    def send_new_board(self):
+        self.send(json.dumps({
+            'type': 'new_board'
+        }))
+        self.send(json.dumps({
+            'type': 'message',
+            'message': '<i>New board generated!</i>'
+        }))
+
+    def send_shown_flagged(self):
+        if (self.board.is_game_over()):
+            self.send(json.dumps({
+                'type': 'display_full',
+                'full_board': [x.as_full_dict() for x in self.board.cells.all()]
+            }))
+        else:
+            shown = self.board.cells.filter(shown=True)
+            # TODO: do not send 'bomb_next' with flagged items
+            flagged = self.board.cells.filter(flagged=True)
+            self.send(json.dumps({
+                'type': 'display',
+                'partial_board': [x.as_dict() for x in shown],
+                'flagged': [{'x': x.x, 'y': x.y} for x in flagged]
+            }))
+
+    def save_revealed(self, revealed_squares):
+        # edit database so user can come back later
+        for cell in revealed_squares:
+            dbcell = MinesweeperCell.objects.get(x=cell['x'], y=cell['y'], board=self.board)
+            dbcell.shown = True
+            dbcell.save()
+
+
+    def reveal(self, x, y, already_revealed):
+        for xd in range(-1, 2):
+            for yd in range(-1, 2):
+                nx = x+xd
+                ny = y+yd
+                index = (ny*10)+nx
+                # if invalid,
+                if nx < 0 or ny < 0 or nx > 9 or ny > 9:
+                    continue
+                # if already checked
+                ar = False
+                for rev in already_revealed:
+                    if rev['x'] == nx and rev['y'] == ny:
+                        ar = True
+                        break
+                if ar:
+                    continue
+                current_cell = MinesweeperCell.objects.get(x=nx, y=ny, board=self.board)
+                # if is bomb
+                if current_cell.bomb:
+                    continue
+                elif current_cell.bombs_next > 0:
+                    already_revealed.append({
+                        'x': nx,
+                        'y': ny,
+                        'bombs_next': current_cell.bombs_next
+                    })
+                elif current_cell.bombs_next == 0:
+                    already_revealed.append({
+                        'x': nx,
+                        'y': ny,
+                        'bombs_next': 0
+                    })
+                    # recursive:
+                    # NOTE: Python (in this case) effectively passes by reference
+                    self.reveal(nx, ny, already_revealed)
+        return already_revealed
+
+    def select_board_if_exists(self):
+        # if user has a board already available: use it instead
+        current_board = MinesweeperBoard.objects.filter(user=self.user)
+        if len(current_board) > 0:
+            self.board = current_board[0]
+            return True
+        self.board_generator()
+
+    # TODO: remove hard-coded vars
+    # TODO: make more efficient
+    # TODO: make easier to read
+    # TODO: Move to seperate file 
+    def board_generator(self):
+        self.board = MinesweeperBoard.objects.create(user=self.user)
+        cells = []
+        for x in range(100):
+            cells.append(0)
+        placed_bombs = 0
+        while placed_bombs < 15:
+            rand = random.randint(0, 99)
+
+            x = rand % 10
+            y = rand // 10
+            if cells[(y*10)+x] != '*':
+                cells[(y*10)+x] = '*'
+                placed_bombs += 1
+        for y in range(10):
+            for x in range(10):
+                i = (y*10) + x
+                if cells[i] != '*':
+                    # This finds the number of bombs within the 8 squares surrounding
+                    check_matrix = [
+                        (-1, -1),
+                        (-1, 0),
+                        (-1, 1),
+                        (0, -1),
+                        (0, 1),
+                        (1, -1),
+                        (1, 0),
+                        (1, 1)
+                    ]
+                    bombs_around = 0
+                    for p,q in check_matrix:
+                        if not(y + p < 0 or y + p > 9 or x + q < 0 or x + q > 9):
+                            j = (p*10)+q
+                            if cells[i+j] == '*':
+                                bombs_around += 1
+                    cells[i] = bombs_around
+                MinesweeperCell.objects.create(
+                    x=x,
+                    y=y,
+                    bombs_next=cells[i] if cells[i] != '*' else 0,
+                    bomb=cells[i] == '*',
+                    board=self.board
+                )
+
+    def connect(self):
+        self.accept()
+        self.user = LameUser.objects.get(username=self.scope['user'].username)
+        self.select_board_if_exists()
+        self.send_shown_flagged()
+
+    def disconnect(self, close_code):
+        pass
+
+    def receive(self, text_data):
+        data = json.loads(text_data)
+        if data['type'] == 'generate':
+            self.board.delete()
+            self.board_generator()
+            self.send_new_board()
+        elif data['type'] == 'clicked' and not self.board.is_game_over():
+            x = data['button_id'] % 10
+            y = data['button_id'] // 10
+            # TODO: bomb, 0, other
+            # TODO: saftey if not exists
+            cell = MinesweeperCell.objects.get(x=x, y=y, board=self.board)
+            if cell.bomb:
+                self.send(json.dumps({
+                    'type': 'message',
+                    'message': '<b>You hit a bomb!</b>'
+                }))
+                self.board.status = self.board.Status.LOST
+                self.board.save()
+                self.send_shown_flagged()
+            elif cell.bombs_next == 0:
+                revealed = self.reveal(x, y, [])
+                self.send(json.dumps({
+                    'type': 'display',
+                    'partial_board': revealed
+                }))
+                self.save_revealed(revealed)
+            elif cell.bombs_next > 0:
+                self.send(json.dumps({
+                    'type': 'display',
+                    'partial_board': [
+                        {
+                            'x': x,
+                            'y': y,
+                            'bombs_next': cell.bombs_next
+                        }
+                    ]
+                }))
+                self.save_revealed([{
+                    'x': x,
+                    'y': y
+                }])
+            self.did_win()
+        elif data['type'] == 'flagged' and not self.board.is_game_over():
+            x = data['button_id'] % 10
+            y = data['button_id'] // 10
+            cell = MinesweeperCell.objects.get(x=x, y=y, board=self.board)
+            cell.flagged = not cell.flagged
+            cell.save()
+            self.did_win()
 
 class RPSConsumer(WebsocketConsumer):
-
     def group_send(self, message, event='info'):
         async_to_sync(self.channel_layer.group_send)(
             self.id,
@@ -26,7 +226,7 @@ class RPSConsumer(WebsocketConsumer):
             print("Room Aleady Available")
         # create new room if not exists
         else:
-            self.room = Room.objects.create(id=self.room_id, game=self.game_name, game_name="Rock, Paper, Scissors")
+            self.room = Room.objects.create(id=self.room_id, game=self.game_name, game_name="Rock, Paper, Scissors", user=self.scope['user'])
             self.room.save()
             print("New Room")
         # Remove user from any old rooms
