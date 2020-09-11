@@ -12,10 +12,18 @@ const BOMB_UNICODE = '💣';
 /* TODO: remove global variable */
 let LATEST_BUTTON;
 
+const say_pos = () => {
+    big = LATEST_BUTTON.id.split('-').pop()
+    x = big % 10;
+    y = Math.floor(big / 10);
+    write_message(x + ',' + y);
+};
+
 const help_menu = () => {
-    write_message("h: Help menu")
+    write_message("h: This help menu")
     write_message("n: New game");
     write_message("f: Toggle flag on current tile");
+    write_message('c: Read current position');
     write_message("Space/Enter: Expose current tile");
     write_message("w/a/s/d: up/left/down/right");
 };
@@ -64,6 +72,9 @@ const send_click = (e, event_type) => {
 const moving_key_handler = (e) => {
     if (e.key === 'f') {
         send_click(e, 'flagged');
+    }
+    if (e.key === 'c') {
+        say_pos();
     }
     /* if no last button: do not change */
     if (!LATEST_BUTTON)
