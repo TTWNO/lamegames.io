@@ -2,7 +2,7 @@
     {% for row in board %}
         <div class="row">
             {% for cell in row %}
-                <button aria-label="{{ cell.x }},{{ cell.y }}" class="cell" id="mscell-{{ cell.id }}"></button>
+                <button class="cell" id="mscell-{{ cell.id }}"></button>
             {% endfor %}
         </div>
     {% endfor %}

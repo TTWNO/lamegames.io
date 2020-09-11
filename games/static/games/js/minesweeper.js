@@ -20,10 +20,6 @@ const help_menu = () => {
     write_message("w/a/s/d: up/left/down/right");
 };
 
-const change_aria = (el, rep, new_l) => {
-    el.setAttribute('aria-label', el.getAttribute('aria-label').replace(rep, new_l));
-};
-
 const send_click = (e, event_type) => {
     LATEST_BUTTON = e.target;
     bid = Number(LATEST_BUTTON.id.split('-').pop());
@@ -37,11 +33,9 @@ const send_click = (e, event_type) => {
             if (LATEST_BUTTON.innerHTML !== RED_FLAG_UNICODE)
             {
                 LATEST_BUTTON.innerHTML = RED_FLAG_UNICODE;
-                change_aria(LATEST_BUTTON, /^[0-9]/, 'F $&');
                 write_message("Flagged " + (bid % 10) + "," + Math.floor(bid / 10));
             } else {
                 LATEST_BUTTON.innerHTML = '';
-                change_aria(LATEST_BUTTON, /^F\ /, '');
                 write_message("Unflagged " + (bid % 10) + "," + Math.floor(bid / 10));
             }
         }
@@ -132,7 +126,6 @@ MSSocket.onmessage = (e) => {
             console.log("mscell-" + i)
             btn = document.getElementById("mscell-" + i);
             btn.innerHTML = cell.bombs_next;
-            change_aria(btn, /^([F]\ )?/, cell.bombs_next + ' $&');
             shown_tiles++;
         }
         if (data.flagged)
@@ -142,7 +135,6 @@ MSSocket.onmessage = (e) => {
                 i = (cell.y*10) + cell.x;
                 btn = document.getElementById("mscell-" + i);
                 btn.innerHTML = RED_FLAG_UNICODE; 
-                change_aria(btn, /^[0-9]/, 'F $&');
             }
         }
         write_message("You have exposed " + shown_tiles + " tiles");
@@ -153,10 +145,8 @@ MSSocket.onmessage = (e) => {
             btn = document.getElementById("mscell-" + i);
             if (cell.bomb) {
                 btn.innerHTML = BOMB_UNICODE;
-                change_aria(btn, /^([F]\ )?([0-8]\ )?/, BOMB_UNICODE + ' ')
             } else {
                 btn.innerHTML = cell.bombs_next;
-                change_aria(btn, /^([F]\ )?([0-8]\ )?/, cell.bombs_next + ' ');
             }
         }
     } else if (data.type === 'game_over') {
@@ -167,7 +157,6 @@ MSSocket.onmessage = (e) => {
         for (btn of document.getElementsByClassName("cell"))
         {
             btn.innerHTML = '';
-            change_aria(btn, /^([F]\ )?([0-8]\ )?/, '');
         }
     } else if (data.type === 'message') {
         write_message(data.message);
