@@ -4,11 +4,13 @@ Chat
 {% endblock %}
 
 {% block body %}
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
+    <div id="messages">
+    </div>
+    <input autofocus="true" id="chat-message-input" type="text" size="100"><br>
     <input id="chat-message-submit" type="button" value="Send">
     {{ room_name|json_script:"room-name" }}
     <script>
+        const MESSAGE_DIV = document.getElementById("messages");
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
         const WSProtocol = window.location.protocol === "https:" ? "wss" : "ws";
 
@@ -23,7 +25,10 @@ Chat
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+            new_mes = document.createElement("div");
+            new_mes.innerText = data.message;
+            MESSAGE_DIV.appendChild(new_mes);
+            new_mes.focus();
         };
 
         chatSocket.onclose = function(e) {
@@ -40,9 +45,17 @@ Chat
         document.querySelector('#chat-message-submit').onclick = function(e) {
             const messageInputDom = document.querySelector('#chat-message-input');
             const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
+            if (message[0] !== '/')
+            {
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+            } else {
+                if (message[1] === 'c')
+                {
+                    MESSAGE_DIV.innerHTML = '';
+                }
+            }
             messageInputDom.value = '';
         };
     </script>

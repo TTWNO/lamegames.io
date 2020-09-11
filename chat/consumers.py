@@ -2,6 +2,10 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class ChatConsumer(AsyncWebsocketConsumer):
+    async def send_sever_message(self, msg):
+        await self.send(json.dumps({
+            'message': 'SERVER: ' + msg 
+        }))
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
@@ -13,6 +17,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         await self.accept()
+        await self.send_sever_message("Welcome!")
+        await self.send_sever_message("Type /c to clear message!")
 
     async def disconnect(self, close_code):
         # Leave room group
@@ -31,7 +37,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': message
+                'message': self.scope['user'].username + ': ' + message
             }
         )
 
