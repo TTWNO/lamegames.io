@@ -6,5 +6,5 @@ urlpatterns = [
     path('rps/select', views.rps_select, name="rps/select"),
     path('rps/create', views.rps_create, name="rps/create"),
     path('rps/join/<room_id>', views.rps_join, name='rps/join'),
-    path('minesweeper/<id>', views.minesweeper, name='minesweeper')
+    path('minesweeper/', views.minesweeper, name='minesweeper')
 ]
