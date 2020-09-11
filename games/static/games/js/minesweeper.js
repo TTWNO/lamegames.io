@@ -4,10 +4,10 @@ const MSSocket = new WebSocket(
     + '://'
     + window.location.host
     + '/minesweeper/'
-    + "1"
 );
 
 const RED_FLAG_UNICODE = '🚩';
+const BOMB_UNICODE = '💣';
 
 /* TODO: remove global variable */
 let LATEST_BUTTON;
@@ -129,7 +129,7 @@ MSSocket.onmessage = (e) => {
             {
                 i = (cell.y*10) + cell.x;
                 btn = document.getElementById("mscell-" + i);
-                btn.innerHTML = '&#x1F6A9;'; 
+                btn.innerHTML = RED_FLAG_UNICODE; 
             }
         }
         write_message("You have exposed " + shown_tiles + " tiles");
@@ -139,7 +139,7 @@ MSSocket.onmessage = (e) => {
             i = (cell.y*10) + cell.x;
             btn = document.getElementById("mscell-" + i);
             if (cell.bomb) {
-                btn.innerHTML = '&#x1F4A3;';
+                btn.innerHTML = BOMB_UNICODE;
             } else {
                 btn.innerHTML = cell.bombs_next;
             }
