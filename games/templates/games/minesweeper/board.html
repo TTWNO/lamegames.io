@@ -1,10 +1,13 @@
 <div id="minesweeper-board">
-    {% for row in board %}
-        <div class="row">
-            {% for cell in row %}
-                <label id="{{ cell.id }}-label" hidden for="mscell-{{ cell.id }}">{{ cell.x }},{{ cell.y }}</label>
-                <button aria-labelledby="{{ cell.id }}-label" class="cell" id="mscell-{{ cell.id }}"></button>
-            {% endfor %}
-        </div>
-    {% endfor %}
+    <table id="minesweeper-table">
+        {% for row in board %}
+            <tr class="row">
+                {% for cell in row %}
+                <td class="table-cell">
+                    <button class="cell" id="mscell-{{ cell.id }}"></button>
+                </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
 </div>

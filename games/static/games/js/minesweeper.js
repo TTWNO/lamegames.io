@@ -52,6 +52,7 @@ const send_click = (e, event_type) => {
             return;
         }
     }
+    console.log(bid)
     MSSocket.send(JSON.stringify(
         {
             'type': event_type,
@@ -61,6 +62,9 @@ const send_click = (e, event_type) => {
 };
 
 const moving_key_handler = (e) => {
+    if (e.key === 'f') {
+        send_click(e, 'flagged');
+    }
     /* if no last button: do not change */
     if (!LATEST_BUTTON)
     {
@@ -119,6 +123,7 @@ MSSocket.onmessage = (e) => {
         for (cell of data.partial_board)
         {
             i = (cell.y*10) + cell.x;
+            console.log("mscell-" + i)
             btn = document.getElementById("mscell-" + i);
             btn.innerHTML = cell.bombs_next;
             shown_tiles++;
@@ -160,11 +165,6 @@ MSSocket.onmessage = (e) => {
 
 /* TODO: remove hardcoded "clicked"/"flagged" Low-Priority */
 for (cell of document.getElementsByClassName("cell")) {
-    cell.addEventListener('keydown', (e) => {
-        if (e.key === 'f') {
-            send_click(e, 'flagged');
-        }
-    });
     cell.addEventListener('keydown', moving_key_handler);
     cell.addEventListener('click', (e) => {
         send_click(e, 'clicked');
