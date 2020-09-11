@@ -7,12 +7,9 @@ import random
 
 class MinesweeperConsumer(WebsocketConsumer):
     def did_win(self):
-        flagged = list(self.board.cells.filter(flagged=True))
-        bombs = list(self.board.cells.filter(bomb=True))
-
         shown = list(self.board.cells.filter(shown=True))
         not_bombs = list(self.board.cells.filter(bomb=False))
-        if flagged == bombs and shown == not_bombs:
+        if shown == not_bombs:
             self.send(json.dumps({
                 'type': 'message',
                 'message': '<b>You win!</b>'
