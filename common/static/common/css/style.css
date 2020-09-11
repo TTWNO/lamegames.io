@@ -31,3 +31,25 @@ a:visited {
     overflow-y: scroll;
     max-height: 10em;
 }
+
+/* for minesweeper board */
+#minesweeper-board .row {
+    width: 75%;
+    display: flex;
+    margin: auto;
+    padding: 0px;
+    justify-content: center;
+}
+#minesweeper-board .cell {
+    margin: 0px;
+    padding: 0px;
+    text-align: center;
+    font-size: 12px;
+    width: 24px;
+    height: 24px;
+}
+#minesweeper-board .cell:hover,
+#minesweeper-board .cell:focus {
+    background-color: lightgrey;
+    border: none;
+}
