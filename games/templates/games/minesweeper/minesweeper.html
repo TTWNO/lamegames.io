@@ -1,0 +1,8 @@
+{% extends 'common/master.html' %}
+{% load static %}
+
+{% block body %}
+{% include 'games/minesweeper/board.html' %}
+{% include 'games/gamelog.html' %}
+<script src="{% static 'games/js/minesweeper.js' %}"></script>
+{% endblock %}
