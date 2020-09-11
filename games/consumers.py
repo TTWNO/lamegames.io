@@ -227,7 +227,7 @@ class RPSConsumer(WebsocketConsumer):
             print("Room Aleady Available")
         # create new room if not exists
         else:
-            self.room = Room.objects.create(id=self.room_id, game=self.game_name, game_name="Rock, Paper, Scissors", user=self.scope['user'])
+            self.room = Room.objects.create(id=self.room_id, game=self.game_name, game_name="Rock, Paper, Scissors")
             self.room.save()
             print("New Room")
         # Remove user from any old rooms
