@@ -18,7 +18,7 @@ class ActiveUser(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='active_users')
 
     def __str__(self):
-        return self.username
+        return self.user.username
 
 class RPSMove(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
