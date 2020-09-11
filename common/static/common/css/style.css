@@ -34,7 +34,7 @@ a:visited {
 
 /* for minesweeper board */
 #minesweeper-board .row {
-    width: 75%;
+    width: 100%;
     display: flex;
     margin: auto;
     padding: 0px;
@@ -44,12 +44,45 @@ a:visited {
     margin: 0px;
     padding: 0px;
     text-align: center;
-    font-size: 12px;
-    width: 24px;
-    height: 24px;
+    width: 2em;
+    height: 2em;
+    background-color: #ececec;
+    border: 1px solid black;
+    font-weight: bold;
+    font-family: monospace;
+    font-size: 1em;
+}
+#minesweeper-board .cell.showing {
+    background-color: lightgrey
+}
+#minesweeper-board .cell[bombs="0"] {
+    color: rgba(0, 0, 0, 0);
+}
+#minesweeper-board .cell[bombs="1"] {
+    color: blue;
+}
+#minesweeper-board .cell[bombs="2"] {
+    color: green;
+}
+#minesweeper-board .cell[bombs="3"] {
+    color: red;
+}
+#minesweeper-board .cell[bombs="4"] {
+    color: darkblue;
+}
+#minesweeper-board .cell[bombs="5"] {
+    color: maroon;
+}
+#minesweeper-board .cell[bombs="6"] {
+    color: darkcyan;
+}
+#minesweeper-board .cell[bombs="7"] {
+    color: darkgoldenrod;
+}
+#minesweeper-board .cell[bombs="8"] {
+    color: black;
 }
 #minesweeper-board .cell:hover,
 #minesweeper-board .cell:focus {
-    background-color: lightgrey;
-    border: none;
+    background-color: grey;
 }

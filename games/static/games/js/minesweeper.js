@@ -20,6 +20,30 @@ const say_pos = () => {
     write_message(x + ',' + y);
 };
 
+const btn_clear = (btn) => {
+    btn.innerHTML = '';    
+    btn.setAttribute('bombs', '');
+    btn.classList.remove('showing');
+};
+const make_btn_bomb = (btn) => {
+    btn_clear(btn);
+    btn.innerHTML = BOMB_UNICODE;
+    btn.classList.add('showing');
+};
+const make_btn_bombnum = (btn, bn) => {
+    btn.innerHTML = bn;
+    btn.setAttribute('bombs', bn);
+    btn.classList.add('showing');
+};
+const btn_flag = (btn) => {
+    btn_clear(btn);
+    btn.innerHTML = RED_FLAG_UNICODE;
+};
+const btn_unflag = (btn) => {
+    btn_clear(btn);
+    btn.innerHTML = '';
+};
+
 const help_menu = () => {
     write_message("h: This help menu")
     write_message("n: New game");
@@ -41,10 +65,10 @@ const send_click = (e, event_type) => {
         } else {
             if (LATEST_BUTTON.innerHTML !== RED_FLAG_UNICODE)
             {
-                LATEST_BUTTON.innerHTML = RED_FLAG_UNICODE;
+                btn_flag(LATEST_BUTTON);
                 write_message("Flagged " + (bid % 10) + "," + Math.floor(bid / 10));
             } else {
-                LATEST_BUTTON.innerHTML = '';
+                btn_unflag(LATEST_BUTTON);
                 write_message("Unflagged " + (bid % 10) + "," + Math.floor(bid / 10));
             }
         }
@@ -141,7 +165,7 @@ MSSocket.onmessage = (e) => {
             i = (cell.y*10) + cell.x;
             console.log("mscell-" + i)
             btn = document.getElementById("mscell-" + i);
-            btn.innerHTML = cell.bombs_next;
+            make_btn_bombnum(btn, cell.bombs_next);
             shown_tiles++;
         }
         if (data.flagged)
@@ -150,7 +174,7 @@ MSSocket.onmessage = (e) => {
             {
                 i = (cell.y*10) + cell.x;
                 btn = document.getElementById("mscell-" + i);
-                btn.innerHTML = RED_FLAG_UNICODE; 
+                btn_flag(btn);
             }
         }
         write_message("You have exposed " + shown_tiles + " tiles");
@@ -160,9 +184,9 @@ MSSocket.onmessage = (e) => {
             i = (cell.y*10) + cell.x;
             btn = document.getElementById("mscell-" + i);
             if (cell.bomb) {
-                btn.innerHTML = BOMB_UNICODE;
+                make_btn_bomb(btn);
             } else {
-                btn.innerHTML = cell.bombs_next;
+                make_btn_bombnum(btn, cell.bombs_next);
             }
         }
     } else if (data.type === 'game_over') {
@@ -172,7 +196,7 @@ MSSocket.onmessage = (e) => {
     } else if (data.type === 'new_board') {
         for (btn of document.getElementsByClassName("cell"))
         {
-            btn.innerHTML = '';
+            btn_clear(btn);
         }
     } else if (data.type === 'message') {
         write_message(data.message);
