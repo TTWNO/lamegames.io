@@ -1,3 +1,4 @@
+/* TODO: remove hardcoded values */
 const WSProtocol = window.location.protocol === "https:" ? "wss" : "ws";
 const MSSocket = new WebSocket(
     WSProtocol
@@ -83,24 +84,28 @@ const moving_key_handler = (e) => {
     }
 
     old_id = Number(LATEST_BUTTON.id.split('-').pop());
+    old_x = old_id % 10;
+    old_y = Math.floor(old_id / 10);
+    new_x = old_x;
+    new_y = old_y;
     console.log("OID: " + old_id);
-    /* TODO: remove hardcoded values */
     if (e.key === 'w') {
-        new_id = old_id -= 10;
+        new_y -= 1;
     } else if (e.key === 'a') {
-        new_id = old_id -= 1;
+        new_x -= 1;
     } else if (e.key === 's') {
-        new_id = old_id += 10;
+        new_y += 1
     } else if (e.key === 'd') {
-        new_id = old_id += 1;
+        new_x += 1;
     }
-
-    /* if new ID over/under limit: stop */
-    /* TODO: remove hardcoded values */
-    if (new_id > 99 || new_id < 0)
+    /* if new cord over/under limit: stop */
+    if (new_x < 0 || new_x > 9 ||
+        new_y < 0 || new_y > 9)
     {
         return;
     }
+
+    new_id = (new_y*10) + new_x;
 
     console.log("NID: " + new_id);
     /* focus on new button ID */
