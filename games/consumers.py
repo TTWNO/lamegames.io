@@ -9,7 +9,10 @@ class MinesweeperConsumer(WebsocketConsumer):
     def did_win(self):
         flagged = list(self.board.cells.filter(flagged=True))
         bombs = list(self.board.cells.filter(bomb=True))
-        if flagged == bombs:
+
+        shown = list(self.board.cells.filter(shown=True))
+        not_bombs = list(self.board.cells.filter(bomb=False))
+        if flagged == bombs and shown == not_bombs:
             self.send(json.dumps({
                 'type': 'message',
                 'message': '<b>You win!</b>'
@@ -141,7 +144,8 @@ class MinesweeperConsumer(WebsocketConsumer):
                     y=y,
                     bombs_next=cells[i] if cells[i] != '*' else 0,
                     bomb=cells[i] == '*',
-                    board=self.board
+                    board=self.board,
+                    shown=False
                 )
 
     def connect(self):
