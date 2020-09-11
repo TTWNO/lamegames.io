@@ -230,10 +230,10 @@ class RPSConsumer(WebsocketConsumer):
             self.room.save()
             print("New Room")
         # Remove user from any old rooms
-        ActiveUser.objects.filter(username=self.scope['user'].username).delete()
+        ActiveUser.objects.filter(user=self.scope['user']).delete()
 
         # Add user to the new/existing room
-        self.active_user = ActiveUser.objects.create(username=self.scope['user'].username, channel=self.channel_name, room=self.room)
+        self.active_user = ActiveUser.objects.create(user=self.scope['user'], channel=self.channel_name, room=self.room)
 
         self.id = self.scope['url_route']['kwargs']['id']
         # tell everyone who will join on the next line :)
@@ -291,7 +291,8 @@ class RPSConsumer(WebsocketConsumer):
         if winner == 0:
             self.group_send('tie', event='game_over')
         else:
-            self.group_send("{0} played {1}.<br>{2} played {3}.<br>{4} won!".format(moves[0].user.username, moves[0].choice, moves[1].user.username, moves[1].choice, moves[winner-1].user.username), event='game_over')
+            # TODO: Make cleaner; weird to do user.user
+            self.group_send("{0} played {1}.<br>{2} played {3}.<br>{4} won!".format(moves[0].user.user.username, moves[0].choice, moves[1].user.user.username, moves[1].choice, moves[winner-1].user.user.username), event='game_over')
 
     def already_made_move(self):
         self.send(text_data=json.dumps({
