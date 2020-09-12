@@ -26,6 +26,7 @@ class MinesweeperConsumer(WebsocketConsumer):
     def client_selected_square(self, x, y):
         sq = MinesweeperCell.objects.get(board=self.board, x=x, y=y)
         sq.shown = True
+        sq.flagged = False
         sq.save()
         if sq.bomb:
             self.hit_bomb(sq)
@@ -40,11 +41,7 @@ class MinesweeperConsumer(WebsocketConsumer):
         elif sq.bombs_next == 0:
             reved = self.reveal(sq.x, sq.y, [])
             # update all the cells to be shwon
-            # TODO: make faster; this takes noticable time; try for one statement
-            for tile in reved:
-                c = MinesweeperCell.objects.get(x=tile['x'], y=tile['y'], board=self.board)
-                c.shown = True
-                c.save()
+            self.save_revealed(reved)
             self.send_client('change-board',
                 reved)
 
@@ -80,14 +77,16 @@ class MinesweeperConsumer(WebsocketConsumer):
             shown = list(self.board.cells.filter(shown=True))
             flagged = list(self.board.cells.filter(flagged=True))
             self.send_client('change-board', [
-                {'x': x.x, 'y': x.y, 'shown': x.shown, 'flagged': x.flagged, 'bombs_next': x.bombs_next} for x in shown+flagged
+                {'x': x.x, 'y': x.y, 'shown': x.shown, 'bombs_next': x.bombs_next} for x in shown+flagged
             ])
 
+    # TODO: make faster; this takes noticable time; try for one statement
     def save_revealed(self, revealed_squares):
         # edit database so user can come back later
         for cell in revealed_squares:
             dbcell = MinesweeperCell.objects.get(x=cell['x'], y=cell['y'], board=self.board)
             dbcell.shown = True
+            dbcell.flagged = False
             dbcell.save()
 
 
@@ -188,6 +187,8 @@ class MinesweeperConsumer(WebsocketConsumer):
     def lose(self):
         self.send_client('message', '<b>You hit a bomb!</b>')
         self.board.status = self.board.Status.LOST
+        # This will remove all flags; I believe this is the classic behaviour
+        self.board.cells.all().update(flagged=False)
         self.board.save()
         self.send_shown_flagged()
 

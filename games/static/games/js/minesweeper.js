@@ -31,6 +31,7 @@ const make_btn_bomb = (btn) => {
     btn.classList.add('showing');
 };
 const make_btn_bombnum = (btn, bn) => {
+    btn_clear(btn);
     btn.innerHTML = bn;
     btn.setAttribute('bombs', bn);
     btn.classList.add('showing');
@@ -159,13 +160,15 @@ const change_board = (board_parts) => {
         i = (cell.y*10) + cell.x;
         console.log("mscell-" + i)
         btn = document.getElementById("mscell-" + i);
-        if (cell.bomb)
-        {
-            make_btn_bomb(btn, BOMB_UNICODE);
-        } else if (cell.bombs_next >= 0) {
+        if (cell.bombs_next >= 0) {
             make_btn_bombnum(btn, cell.bombs_next);
-        } else if (cell.flagged) {
-            btn_flag(btn, RED_FLAG_UNICODE);
+        }
+        if (cell.flagged)
+        {
+            btn_flag(btn);
+        }
+        if (cell.bomb) {
+            make_btn_bomb(btn, BOMB_UNICODE);
         }
         shown_tiles++;
     }
