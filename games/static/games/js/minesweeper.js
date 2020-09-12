@@ -85,7 +85,7 @@ const send_click = (e, event_type) => {
             return;
         }
     }
-    console.log(bid)
+    console.log(bid, event_type);
     MSSocket.send(JSON.stringify(
         {
             'type': event_type,
@@ -152,43 +152,34 @@ const global_key_handler = (e) => {
     }
 };
 
+const change_board = (board_parts) => {
+    let shown_tiles = 0;
+    for (cell of board_parts)
+    {
+        i = (cell.y*10) + cell.x;
+        console.log("mscell-" + i)
+        btn = document.getElementById("mscell-" + i);
+        if (cell.bomb)
+        {
+            make_btn_bomb(btn, BOMB_UNICODE);
+        } else if (cell.bombs_next >= 0) {
+            make_btn_bombnum(btn, cell.bombs_next);
+        } else if (cell.flagged) {
+            btn_flag(btn, RED_FLAG_UNICODE);
+        }
+        shown_tiles++;
+    }
+    write_message("You have exposed " + shown_tiles + " tiles");
+};
+
 
 MSSocket.onmessage = (e) => {
     console.log(e.data);
     console.log(JSON.parse(e.data));
     data = JSON.parse(e.data);
 
-    if (data.type === 'display') {
-        let shown_tiles = 0;
-        for (cell of data.partial_board)
-        {
-            i = (cell.y*10) + cell.x;
-            console.log("mscell-" + i)
-            btn = document.getElementById("mscell-" + i);
-            make_btn_bombnum(btn, cell.bombs_next);
-            shown_tiles++;
-        }
-        if (data.flagged)
-        {
-            for (cell of data.flagged)
-            {
-                i = (cell.y*10) + cell.x;
-                btn = document.getElementById("mscell-" + i);
-                btn_flag(btn);
-            }
-        }
-        write_message("You have exposed " + shown_tiles + " tiles");
-    } else if (data.type === 'display_full') {
-        for (cell of data.full_board)
-        {
-            i = (cell.y*10) + cell.x;
-            btn = document.getElementById("mscell-" + i);
-            if (cell.bomb) {
-                make_btn_bomb(btn);
-            } else {
-                make_btn_bombnum(btn, cell.bombs_next);
-            }
-        }
+    if (data.type === 'change-board') {
+        change_board(data.payload);
     } else if (data.type === 'game_over') {
         MSSocket.send(JSON.stringify({
             'type': 'full_board'
@@ -199,7 +190,7 @@ MSSocket.onmessage = (e) => {
             btn_clear(btn);
         }
     } else if (data.type === 'message') {
-        write_message(data.message);
+        write_message(data.payload);
     }
 };
 

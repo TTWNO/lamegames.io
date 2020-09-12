@@ -3,44 +3,85 @@ from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 from .models import Room, ActiveUser, RPSMove, MinesweeperBoard, MinesweeperCell
 from common.models import LameUser
+from django.db.models import Q
 import random
 
 class MinesweeperConsumer(WebsocketConsumer):
-    def did_win(self):
+    def send_client(self, tpy, msg):
+        self.send(json.dumps({
+            'type': tpy,
+            'payload': msg
+        }))
+
+    def hit_bomb(self, sq):
+        self.send_client('change-board', [{
+            'x': sq.x,
+            'y': sq.y,
+            'flagged': sq.flagged,
+            'bomb': sq.bomb,
+            'bombs_next': sq.bombs_next
+        }])
+        self.lose()
+
+    def client_selected_square(self, x, y):
+        sq = MinesweeperCell.objects.get(board=self.board, x=x, y=y)
+        sq.shown = True
+        sq.save()
+        if sq.bomb:
+            self.hit_bomb(sq)
+        elif sq.bombs_next > 0:
+            self.send_client('change-board', [{
+                'x': sq.x,
+                'y': sq.y,
+                'flagged': sq.flagged,
+                'bomb': sq.bomb,
+                'bombs_next': sq.bombs_next
+            }])
+        elif sq.bombs_next == 0:
+            reved = self.reveal(sq.x, sq.y, [])
+            # update all the cells to be shwon
+            # TODO: make faster; this takes noticable time; try for one statement
+            for tile in reved:
+                c = MinesweeperCell.objects.get(x=tile['x'], y=tile['y'], board=self.board)
+                c.shown = True
+                c.save()
+            self.send_client('change-board',
+                reved)
+
+    def check_win(self):
+        if self.has_won():
+            self.win()
+
+    def has_won(self):
         shown = list(self.board.cells.filter(shown=True))
         not_bombs = list(self.board.cells.filter(bomb=False))
-        if shown == not_bombs:
-            self.send(json.dumps({
-                'type': 'message',
-                'message': '<b>You win!</b>'
-            }))
-            self.board.status = self.board.Status.WON
-            self.board.save()
+        return shown == not_bombs
+
+    def win(self):
+        self.send_client('message', '<b>You win!</b>')
+        self.board.status = self.board.Status.WON
+        self.board.save()
 
     def send_new_board(self):
-        self.send(json.dumps({
-            'type': 'new_board'
-        }))
-        self.send(json.dumps({
-            'type': 'message',
-            'message': '<i>New board generated!</i>'
-        }))
+        self.send_client('new_board', '')
+        self.send_client('message', '<i>New board generated!</i>')
+
+    def flag_tile(self, x, y):
+        cell = MinesweeperCell.objects.get(x=x, y=y, board=self.board)
+        cell.flagged = not cell.flagged
+        cell.save()
 
     def send_shown_flagged(self):
         if (self.board.is_game_over()):
-            self.send(json.dumps({
-                'type': 'display_full',
-                'full_board': [x.as_full_dict() for x in self.board.cells.all()]
-            }))
+            self.send_client('change-board', [
+                x.as_full_dict() for x in self.board.cells.all()
+            ])
         else:
-            shown = self.board.cells.filter(shown=True)
-            # TODO: do not send 'bomb_next' with flagged items
-            flagged = self.board.cells.filter(flagged=True)
-            self.send(json.dumps({
-                'type': 'display',
-                'partial_board': [x.as_dict() for x in shown],
-                'flagged': [{'x': x.x, 'y': x.y} for x in flagged]
-            }))
+            shown = list(self.board.cells.filter(shown=True))
+            flagged = list(self.board.cells.filter(flagged=True))
+            self.send_client('change-board', [
+                {'x': x.x, 'y': x.y, 'shown': x.shown, 'flagged': x.flagged, 'bombs_next': x.bombs_next} for x in shown+flagged
+            ])
 
     def save_revealed(self, revealed_squares):
         # edit database so user can come back later
@@ -144,6 +185,11 @@ class MinesweeperConsumer(WebsocketConsumer):
                     board=self.board,
                     shown=False
                 )
+    def lose(self):
+        self.send_client('message', '<b>You hit a bomb!</b>')
+        self.board.status = self.board.Status.LOST
+        self.board.save()
+        self.send_shown_flagged()
 
     def connect(self):
         self.accept()
@@ -161,49 +207,10 @@ class MinesweeperConsumer(WebsocketConsumer):
             self.board_generator()
             self.send_new_board()
         elif data['type'] == 'clicked' and not self.board.is_game_over():
-            x = data['button_id'] % 10
-            y = data['button_id'] // 10
-            # TODO: bomb, 0, other
-            # TODO: saftey if not exists
-            cell = MinesweeperCell.objects.get(x=x, y=y, board=self.board)
-            if cell.bomb:
-                self.send(json.dumps({
-                    'type': 'message',
-                    'message': '<b>You hit a bomb!</b>'
-                }))
-                self.board.status = self.board.Status.LOST
-                self.board.save()
-                self.send_shown_flagged()
-            elif cell.bombs_next == 0:
-                revealed = self.reveal(x, y, [])
-                self.send(json.dumps({
-                    'type': 'display',
-                    'partial_board': revealed
-                }))
-                self.save_revealed(revealed)
-            elif cell.bombs_next > 0:
-                self.send(json.dumps({
-                    'type': 'display',
-                    'partial_board': [
-                        {
-                            'x': x,
-                            'y': y,
-                            'bombs_next': cell.bombs_next
-                        }
-                    ]
-                }))
-                self.save_revealed([{
-                    'x': x,
-                    'y': y
-                }])
-            self.did_win()
+            self.client_selected_square(data['button_id'] % 10, data['button_id'] // 10)
+            self.check_win()
         elif data['type'] == 'flagged' and not self.board.is_game_over():
-            x = data['button_id'] % 10
-            y = data['button_id'] // 10
-            cell = MinesweeperCell.objects.get(x=x, y=y, board=self.board)
-            cell.flagged = not cell.flagged
-            cell.save()
-            self.did_win()
+            self.flag_tile(data['button_id'] % 10, data['button_id'] // 10)
 
 class RPSConsumer(WebsocketConsumer):
     def group_send(self, message, event='info'):
