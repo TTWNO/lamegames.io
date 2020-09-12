@@ -65,6 +65,8 @@ class MinesweeperConsumer(WebsocketConsumer):
 
     def flag_tile(self, x, y):
         cell = MinesweeperCell.objects.get(x=x, y=y, board=self.board)
+        if not cell.flagged:
+            cell.shown = False
         cell.flagged = not cell.flagged
         cell.save()
 
@@ -74,11 +76,9 @@ class MinesweeperConsumer(WebsocketConsumer):
                 x.as_full_dict() for x in self.board.cells.all()
             ])
         else:
-            shown = list(self.board.cells.filter(shown=True))
-            flagged = list(self.board.cells.filter(flagged=True))
-            self.send_client('change-board', [
-                {'x': x.x, 'y': x.y, 'shown': x.shown, 'bombs_next': x.bombs_next} for x in shown+flagged
-            ])
+            shown = [{'x': x.x, 'y': x.y, 'bombs_next': x.bombs_next} for x in list(self.board.cells.filter(shown=True))]
+            flagged = [{'x': x.x, 'y': x.y, 'flagged': True} for x in list(self.board.cells.filter(flagged=True))]
+            self.send_client('change-board', shown + flagged)
 
     # TODO: make faster; this takes noticable time; try for one statement
     def save_revealed(self, revealed_squares):
