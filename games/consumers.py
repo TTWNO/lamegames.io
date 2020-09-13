@@ -24,26 +24,13 @@ class MinesweeperConsumer(WebsocketConsumer):
         self.lose()
 
     def client_selected_square(self, x, y):
-        sq = MinesweeperCell.objects.get(board=self.board, x=x, y=y)
-        sq.shown = True
-        sq.flagged = False
-        sq.save()
-        if sq.bomb:
-            self.hit_bomb(sq)
-        elif sq.bombs_next > 0:
-            self.send_client('change-board', [{
-                'x': sq.x,
-                'y': sq.y,
-                'flagged': sq.flagged,
-                'bomb': sq.bomb,
-                'bombs_next': sq.bombs_next
-            }])
-        elif sq.bombs_next == 0:
-            reved = self.reveal(sq.x, sq.y, [])
-            # update all the cells to be shwon
+        reved = self.reveal(x, y, [])
+        print(reved)
+        if len(reved) == 0:
+            self.hit_bomb(self.board.cells.get(x=x, y=y))
+        else:
+            self.send_client('change-board', reved)
             self.save_revealed(reved)
-            self.send_client('change-board',
-                reved)
 
     def check_win(self):
         if self.has_won():
@@ -89,43 +76,43 @@ class MinesweeperConsumer(WebsocketConsumer):
             dbcell.flagged = False
             dbcell.save()
 
+    def valid_pos(self, x, y):
+        return not(x > 9 or x < 0 or y > 9 or y < 0)
 
     def reveal(self, x, y, already_revealed):
+        if not self.valid_pos(x, y):
+            return already_revealed
+        # if already checked
+        for rev in already_revealed:
+            if rev['x'] == x and rev['y'] == y:
+                return already_revealed
+
+        tile = self.board.cells.get(x=x, y=y)
+        # if is bomb
+        if tile.bomb:
+            return already_revealed
+        elif tile.bombs_next > 0:
+            already_revealed.append({
+                'x': x,
+                'y': y,
+                'bombs_next': self.cells[y][x]
+            })
+            return already_revealed
+        # if bombs_next is 0
+        already_revealed.append({
+            'x': x,
+            'y': y,
+            'bombs_next': 0
+        })
+
         for xd in range(-1, 2):
             for yd in range(-1, 2):
                 nx = x+xd
                 ny = y+yd
-                index = (ny*10)+nx
-                # if invalid,
-                if nx < 0 or ny < 0 or nx > 9 or ny > 9:
+                # jump over middle square
+                if nx == x and ny == y:
                     continue
-                # if already checked
-                ar = False
-                for rev in already_revealed:
-                    if rev['x'] == nx and rev['y'] == ny:
-                        ar = True
-                        break
-                if ar:
-                    continue
-                current_cell = MinesweeperCell.objects.get(x=nx, y=ny, board=self.board)
-                # if is bomb
-                if current_cell.bomb:
-                    continue
-                elif current_cell.bombs_next > 0:
-                    already_revealed.append({
-                        'x': nx,
-                        'y': ny,
-                        'bombs_next': current_cell.bombs_next
-                    })
-                elif current_cell.bombs_next == 0:
-                    already_revealed.append({
-                        'x': nx,
-                        'y': ny,
-                        'bombs_next': 0
-                    })
-                    # recursive:
-                    # NOTE: Python (in this case) effectively passes by reference
-                    self.reveal(nx, ny, already_revealed)
+                self.reveal(nx, ny, already_revealed)
         return already_revealed
 
     def select_board_if_exists(self):
@@ -133,6 +120,9 @@ class MinesweeperConsumer(WebsocketConsumer):
         current_board = MinesweeperBoard.objects.filter(user=self.user)
         if len(current_board) > 0:
             self.board = current_board[0]
+            self.cells = [[0 for _ in range(10)] for _ in range(10)]
+            for cell in self.board.cells.all():
+               self.cells[cell.y][cell.x] = '*' if cell.bomb else cell.bombs_next
             return True
         self.board_generator()
 
@@ -142,22 +132,24 @@ class MinesweeperConsumer(WebsocketConsumer):
     # TODO: Move to seperate file 
     def board_generator(self):
         self.board = MinesweeperBoard.objects.create(user=self.user)
-        cells = []
-        for x in range(100):
-            cells.append(0)
+        self.cells = []
+        for y in range(10):
+            self.cells.append([])
+            for x in range(10):
+                self.cells[y].append(0)
         placed_bombs = 0
         while placed_bombs < 15:
             rand = random.randint(0, 99)
 
             x = rand % 10
             y = rand // 10
-            if cells[(y*10)+x] != '*':
-                cells[(y*10)+x] = '*'
+            if self.cells[y][x] != '*':
+                self.cells[y][x] = '*'
                 placed_bombs += 1
         for y in range(10):
             for x in range(10):
                 i = (y*10) + x
-                if cells[i] != '*':
+                if self.cells[y][x] != '*':
                     # This finds the number of bombs within the 8 squares surrounding
                     check_matrix = [
                         (-1, -1),
@@ -173,14 +165,14 @@ class MinesweeperConsumer(WebsocketConsumer):
                     for p,q in check_matrix:
                         if not(y + p < 0 or y + p > 9 or x + q < 0 or x + q > 9):
                             j = (p*10)+q
-                            if cells[i+j] == '*':
+                            if self.cells[y+p][x+q] == '*':
                                 bombs_around += 1
-                    cells[i] = bombs_around
-                MinesweeperCell.objects.create(
+                    self.cells[y][x] = bombs_around
+                m = MinesweeperCell.objects.create(
                     x=x,
                     y=y,
-                    bombs_next=cells[i] if cells[i] != '*' else 0,
-                    bomb=cells[i] == '*',
+                    bombs_next=self.cells[y][x] if self.cells[y][x] != '*' else 0,
+                    bomb=self.cells[y][x] == '*',
                     board=self.board,
                     shown=False
                 )
