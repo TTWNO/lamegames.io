@@ -19,6 +19,6 @@ def rps_create(request):
 
 def minesweeper(request):
     board = [[{'id': (y*10)+x, 'x': x, 'y': y} for x in range(10)] for y in range(10)]
-    return render(request, "games/minesweeper/minesweeper.html", {
+    return render(request, 'games/minesweeper/minesweeper.html', {
         'board': board
     })
