@@ -7,6 +7,11 @@ from django.db.models import Q
 import random
 
 class MinesweeperConsumer(WebsocketConsumer):
+    def xy_to_pos(self, x, y):
+        return (y * self.board.width) + x
+    def pos_to_xy(self, pos):
+        return (pos % self.board.width, pos // self.board.height)
+
     def send_client(self, tpy, msg):
         self.send(json.dumps({
             'type': tpy,
@@ -23,7 +28,8 @@ class MinesweeperConsumer(WebsocketConsumer):
         }])
         self.lose()
 
-    def client_selected_square(self, x, y):
+    def client_selected_square(self, pos):
+        x, y = self.pos_to_xy(pos)
         reved = self.reveal(x, y, [])
         print(reved)
         if len(reved) == 0:
@@ -50,7 +56,8 @@ class MinesweeperConsumer(WebsocketConsumer):
         self.send_client('new_board', '')
         self.send_client('message', '<i>New board generated!</i>')
 
-    def flag_tile(self, x, y):
+    def flag_tile(self, pos):
+        x, y = self.pos_to_xy(pos)
         cell = MinesweeperCell.objects.get(x=x, y=y, board=self.board)
         if not cell.flagged:
             cell.shown = False
@@ -67,7 +74,6 @@ class MinesweeperConsumer(WebsocketConsumer):
             flagged = [{'x': x.x, 'y': x.y, 'flagged': True} for x in list(self.board.cells.filter(flagged=True))]
             self.send_client('change-board', shown + flagged)
 
-    # TODO: make faster; this takes noticable time; try for one statement
     def save_revealed(self, revealed_squares):
         # edit database so user can come back later
         for cell in revealed_squares:
@@ -77,7 +83,7 @@ class MinesweeperConsumer(WebsocketConsumer):
             dbcell.save()
 
     def valid_pos(self, x, y):
-        return not(x > 9 or x < 0 or y > 9 or y < 0)
+        return x >= 0 and x < self.board.width and y >= 0 and y < self.board.height
 
     def reveal(self, x, y, already_revealed):
         if not self.valid_pos(x, y):
@@ -120,35 +126,34 @@ class MinesweeperConsumer(WebsocketConsumer):
         current_board = MinesweeperBoard.objects.filter(user=self.user)
         if len(current_board) > 0:
             self.board = current_board[0]
-            self.cells = [[0 for _ in range(10)] for _ in range(10)]
+            self.cells = [[0 for _ in range(self.board.width)] for _ in range(self.board.height)]
             for cell in self.board.cells.all():
                self.cells[cell.y][cell.x] = '*' if cell.bomb else cell.bombs_next
             return True
         self.board_generator()
 
-    # TODO: remove hard-coded vars
     # TODO: make more efficient
     # TODO: make easier to read
     # TODO: Move to seperate file 
     def board_generator(self):
         self.board = MinesweeperBoard.objects.create(user=self.user)
         self.cells = []
-        for y in range(10):
+        for y in range(self.board.height):
             self.cells.append([])
-            for x in range(10):
+            for x in range(self.board.width):
                 self.cells[y].append(0)
         placed_bombs = 0
         while placed_bombs < 15:
-            rand = random.randint(0, 99)
+            rand = random.randint(0, (self.board.width * self.board.height)-1)
 
             x = rand % 10
             y = rand // 10
             if self.cells[y][x] != '*':
                 self.cells[y][x] = '*'
                 placed_bombs += 1
-        for y in range(10):
-            for x in range(10):
-                i = (y*10) + x
+        for y in range(self.board.height):
+            for x in range(self.board.width):
+                i = (y*self.board.width) + x
                 if self.cells[y][x] != '*':
                     # This finds the number of bombs within the 8 squares surrounding
                     check_matrix = [
@@ -163,8 +168,7 @@ class MinesweeperConsumer(WebsocketConsumer):
                     ]
                     bombs_around = 0
                     for p,q in check_matrix:
-                        if not(y + p < 0 or y + p > 9 or x + q < 0 or x + q > 9):
-                            j = (p*10)+q
+                        if self.valid_pos(p+y, q+x):
                             if self.cells[y+p][x+q] == '*':
                                 bombs_around += 1
                     self.cells[y][x] = bombs_around
@@ -200,10 +204,10 @@ class MinesweeperConsumer(WebsocketConsumer):
             self.send_new_board()
             self.board_generator()
         elif data['type'] == 'clicked' and not self.board.is_game_over():
-            self.client_selected_square(data['button_id'] % 10, data['button_id'] // 10)
+            self.client_selected_square(data['button_id'])
             self.check_win()
         elif data['type'] == 'flagged' and not self.board.is_game_over():
-            self.flag_tile(data['button_id'] % 10, data['button_id'] // 10)
+            self.flag_tile(data['button_id'])
 
 class RPSConsumer(WebsocketConsumer):
     def group_send(self, message, event='info'):
