@@ -33,6 +33,9 @@ class MinesweeperBoard(models.Model):
     
     user = models.OneToOneField(LameUser, on_delete=models.CASCADE)
     status = models.IntegerField(choices=Status.choices, default=Status.IN_PROGRESS)
+    width = models.SmallIntegerField(default=10)
+    height = models.SmallIntegerField(default=10)
+    bombs = models.SmallIntegerField(default=15)
 
     def is_game_over(self):
         return self.status in [self.Status.LOST, self.Status.WON]
