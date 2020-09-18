@@ -1,9 +1,9 @@
 <div id="minesweeper-board">
-    {% for row in board %}
-        <div class="row">
-            {% for cell in row %}
-                <button class="cell" id="mscell-{{ cell.id }}"></button>
-            {% endfor %}
-        </div>
-    {% endfor %}
+  {% for row in board %}
+    <div class="row">
+      {% for cell in row %}
+        <button class="cell" id="mscell-{{ cell }}"></button>
+      {% endfor %}
+    </div>
+  {% endfor %}
 </div>
