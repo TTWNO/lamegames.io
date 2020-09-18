@@ -197,8 +197,8 @@ class MinesweeperConsumer(WebsocketConsumer):
         data = json.loads(text_data)
         if data['type'] == 'generate':
             self.board.delete()
-            self.board_generator()
             self.send_new_board()
+            self.board_generator()
         elif data['type'] == 'clicked' and not self.board.is_game_over():
             self.client_selected_square(data['button_id'] % 10, data['button_id'] // 10)
             self.check_win()
