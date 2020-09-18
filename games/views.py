@@ -2,7 +2,7 @@ from django.shortcuts import (
     render, HttpResponse, redirect
 )
 from django.urls import reverse
-from .models import Room, ActiveUser
+from .models import Room, ActiveUser, MinesweeperBoard
 
 # Create your views here.
 def rps(request):
@@ -18,7 +18,12 @@ def rps_create(request):
     return redirect(reverse('rps/join', args=[request.user.username]))
 
 def minesweeper(request):
-    board = [[{'id': (y*10)+x, 'x': x, 'y': y} for x in range(10)] for y in range(10)]
+    board = MinesweeperBoard.objects.filter(user=request.user)
+    if len(board) > 0:
+        board = board[0]
+    else:
+        board = MinesweeperBoard.objects.create(user=request.user)
+    id_board = [[(y*board.width)+x for x in range(board.width)] for y in range(board.height)]
     return render(request, 'games/minesweeper/minesweeper.html', {
-        'board': board
+        'board': id_board
     })
