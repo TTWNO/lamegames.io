@@ -17,7 +17,10 @@ from .models import LameUser
 
 # Create your views here.
 def index(request):
-    return render(request, 'index.html')
+    if request.user.is_authenticated:
+        return render(request, 'signed_in.html')
+    else:
+        return render(request, 'index.html')
 
 def signup(request):
     if request.method == 'POST':

@@ -9,6 +9,10 @@
     </head>
     <body>
         <div id="wrapper">
+            <header>
+                {% include 'common/header.html' %}
+                {% include 'common/nav.html' %}
+            </header>
             {% block body %}
             {% endblock %}
         </div>

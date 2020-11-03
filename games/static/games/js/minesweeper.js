@@ -46,12 +46,12 @@ const btn_unflag = (btn) => {
 };
 
 const help_menu = () => {
-    write_message("h: This help menu")
-    write_message("n: New game");
-    write_message("f: Toggle flag on current tile");
-    write_message('c: Read current position');
-    write_message("Space/Enter: Expose current tile");
-    write_message("w/a/s/d: up/left/down/right");
+    write_message("h: This help menu.<br>\
+    n: New game.<br>\
+    f: Toggle flag on current tile.<br>\
+    c: Read current position.<br>\
+    Space/Enter: Expose current tile.<br>\
+    w/a/s/d: up/left/down/right.");
 };
 
 const send_click = (e, event_type) => {

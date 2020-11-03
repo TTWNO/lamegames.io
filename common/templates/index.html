@@ -9,23 +9,6 @@
 {% endblock %}
 
 {% block body %}
-{% if user.is_authenticated %}
-    <p>Welcome, {{ user.username }}!</p>
-    <p>Email: {{ user.email }}.</p>
-    <a href="{% url 'chat' %}">Chat</a>
-    <br>
-    <a href="{% url 'minesweeper' %}">Minesweeper (Single Player)</a>
-    <br>
-    <a href="{% url 'rps' %}">Rock, Paper, Scissors</a>
-    <br>
-    <a href="{% url 'logout' %}">Logout</a>
-    <br>
-{% else %}
-    <a href="{% url 'login' %}">Login</a>
-    <br>
-    <a href="{% url 'signup' %}">Sign Up</a>
-    <br>
-    <a href="{% url 'password_reset' %}">Forgot Password?</a>
-    <br>
-{% endif %}
+<p>Welcome to lamegames!</p>
+<p>I basically made this site because I thought having a few example of simple game-dev work online would be cool.</p>
 {% endblock %}
