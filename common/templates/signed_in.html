@@ -2,12 +2,21 @@
 {% block body %}
 <p>Welcome, {{ user.username }}!</p>
 <p>Email: {{ user.email }}.</p>
-<a href="{% url 'chat' %}">Chat</a>
-<br>
-<a href="{% url 'minesweeper' %}">Minesweeper (Single Player)</a>
-<br>
-<a href="{% url 'rps' %}">Rock, Paper, Scissors</a>
-<br>
-<a href="{% url 'logout' %}">Logout</a>
-<br>
+<ul>
+    <li>
+        <a href="{% url 'chat' %}">Chat</a>
+    </li>
+    <li>
+        <a href="{% url 'minesweeper' %}">Minesweeper (Single Player)</a>
+    </li>
+    <li>
+        <a href="{% url 'rps' %}">Rock, Paper, Scissors</a>
+    </li>
+    <li>
+        <a href="{% url 'chess' %}">Chess</a>
+    </li>
+    <li>
+        <a href="{% url 'logout' %}">Logout</a>
+    </li>
+</ul>
 {% endblock %}
