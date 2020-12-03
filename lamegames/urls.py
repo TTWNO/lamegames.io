@@ -25,7 +25,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('common.urls')),
     path('chat/', include('chat.urls')),
-    path('games/', include('games.urls'))
+    path('games/', include('games.urls')),
+    path('chess/', include('chess.urls'))
 ]
 
 websocket_urlpatterns = [
