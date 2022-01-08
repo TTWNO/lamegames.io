@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     # NOTE: keep on top to promote app precedence
+    'skel',
     'common',
     'channels',
     'chat',
@@ -43,6 +44,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+]
+
+VISIBLE_GAME_LINKS = [
+  {
+    "url": "minesweeper",
+    "name": "Minesweeper (Single-Player)",
+  },
+  {
+    "url": "rps",
+    "name": "Rock, Paper, Scissors",
+  },
+  {
+    "url": "chat",
+    "name": "Chat",
+  },
+  {
+    "url": "chess",
+    "name": "Chess",
+  },
 ]
 
 MIDDLEWARE = [
