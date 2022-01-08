@@ -1,6 +1,7 @@
 from django.shortcuts import (
     render, HttpResponse, redirect
 )
+from django.conf import settings
 from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth import login, authenticate
@@ -18,34 +19,36 @@ from .models import LameUser
 # Create your views here.
 def index(request):
     if request.user.is_authenticated:
-        return render(request, 'signed_in.html')
+        return render(request, "signed_in.html", {
+          "games": settings.VISIBLE_GAME_LINKS,
+        })
     else:
-        return render(request, 'index.html')
+        return render(request, "index.html")
 
 def signup(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = LameUserSignupForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = False
             user.save()
             current_site = get_current_site(request)
-            mail_subject = 'Activate your lamegames account.'
-            message = render_to_string('registration/activation_email.html', {
-                'user': user,
-                'domain': current_site.domain,
-                'uid':urlsafe_base64_encode(force_bytes(user.pk)),
-                'token':account_activation_token.make_token(user),
+            mail_subject = "Activate your lamegames account."
+            message = render_to_string("registration/activation_email.html", {
+                "user": user,
+                "domain": current_site.domain,
+                "uid":urlsafe_base64_encode(force_bytes(user.pk)),
+                "token":account_activation_token.make_token(user),
             })
-            to_email = form.cleaned_data.get('email')
+            to_email = form.cleaned_data.get("email")
             email = EmailMessage(
                         mail_subject, message, to=[to_email]
             )
             email.send()
-            return render(request, 'registration/confirm_your_email.html', {})
+            return render(request, "registration/confirm_your_email.html", {})
     else:
         form = LameUserSignupForm()
-    return render(request, 'registration/signup.html', {'form': form})
+    return render(request, "registration/signup.html", {"form": form})
 
 def activate(request, uidb64, token):
     try:
@@ -57,8 +60,8 @@ def activate(request, uidb64, token):
         user.is_active = True
         user.save()
         login(request, user)
-        # return redirect('home')
-        return render(request, 'registration/account_activated.html')
+        # return redirect("home")
+        return render(request, "registration/account_activated.html")
     else:
-        return render(request, 'registration/invalid_link.html')
+        return render(request, "registration/invalid_link.html")
 
