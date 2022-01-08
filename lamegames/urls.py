@@ -30,7 +30,7 @@ urlpatterns = [
 ]
 
 websocket_urlpatterns = [
-    re_path(r'ws/chat/(?P<room_name>\w+)/$', chat.consumers.ChatConsumer),
-    path('rps/<id>', games.consumers.RPSConsumer),
-    path('minesweeper/', games.consumers.MinesweeperConsumer)
+    re_path(r'ws/chat/(?P<room_name>\w+)/$', chat.consumers.ChatConsumer.as_asgi()),
+    path('rps/<id>', games.consumers.RPSConsumer.as_asgi()),
+    path('minesweeper/', games.consumers.MinesweeperConsumer.as_asgi())
 ]
