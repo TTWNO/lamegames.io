@@ -15,22 +15,24 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path, include
+from django.conf import settings
 
-import chat
-import games
+import chat, rps, minesweeper
 from chat import consumers
-from games import consumers
+from rps import consumers
+from minesweeper import consumers
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('common.urls')),
-    path('chat/', include('chat.urls')),
-    path('games/', include('games.urls')),
-    path('chess/', include('chess.urls'))
+    #path('chat/', include('chat.urls')),
+    #path('games/', include('games.urls')),
+    #path('chess/', include('chess.urls'))
+    *[path(game["url"] + "/", include(game["urls"])) for game in settings.VISIBLE_GAME_LINKS]
 ]
 
 websocket_urlpatterns = [
     re_path(r'ws/chat/(?P<room_name>\w+)/$', chat.consumers.ChatConsumer.as_asgi()),
-    path('rps/<id>', games.consumers.RPSConsumer.as_asgi()),
-    path('minesweeper/', games.consumers.MinesweeperConsumer.as_asgi())
+    path('rps/<id>', rps.consumers.RPSConsumer.as_asgi()),
+    path('minesweeper/', minesweeper.consumers.MinesweeperConsumer.as_asgi())
 ]
