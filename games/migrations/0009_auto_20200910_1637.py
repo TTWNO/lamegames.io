@@ -22,6 +22,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='minesweeperboard',
             name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='games.activeuser'),
+            field=models.OneToOneField(default=0, on_delete=django.db.models.deletion.CASCADE, to='games.activeuser'),
         ),
     ]
