@@ -25,6 +25,7 @@ class RPSMove(models.Model):
     user = models.ForeignKey(ActiveUser, on_delete=models.CASCADE)
     choice = models.CharField(max_length=8)
 
+# Create your models here.
 class MinesweeperBoard(models.Model):
     class Status(models.IntegerChoices):
         IN_PROGRESS = 0

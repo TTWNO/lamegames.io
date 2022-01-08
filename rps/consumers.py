@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
-from .models import Room, ActiveUser, RPSMove, MinesweeperBoard, MinesweeperCell
+from games.models import Room, ActiveUser, RPSMove
 from common.models import LameUser
 from django.db.models import Q
 import random
