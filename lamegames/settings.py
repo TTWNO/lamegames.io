@@ -32,7 +32,8 @@ ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     # NOTE: keep on top to promote app precedence
-    "skel",
+    # NOTE: uncomment to show skeleton
+    #"skel",
     "common",
     "channels",
     "chat",
@@ -47,13 +48,15 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
+# NOTE: copy and paste into GAMES array below to see skeleton game in the main menu
+"""
+{
+  "module": "skel",
+  "url_name": "skel",
+  "name": "Skeleton Game",
+},
+"""
 GAMES = [
-  # TODO: comment this out
-  {
-    "module": "skel",
-    "url_name": "skel",
-    "name": "Skeleton Game",
-  },
   {
     "module": "minesweeper",
     "url_name": "minesweeper",
