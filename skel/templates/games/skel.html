@@ -1,0 +1,21 @@
+{% extends "common/master.html" %}
+{% load static %}
+
+{% block body %}
+<!-- put some sort of HTML board here; Example: -->
+<div id="board">
+  <button id="test" onclick="test();">Test Button</button>
+</div>
+<!--
+{# put some mobile-friendly buttons here, if necessary; example:
+<div>
+  <button onclick="reset_board();">Reset Board</button>
+</div>
+Make sure that any onclick attribute actually calls a function defined in your "skel.js" file.
+-->
+
+<!-- include a status box and history -->
+{% include "games/gamelog.html" %}
+<!-- include some static files (like Javascript) here; example: -->
+<script src="{% static "games/skel.js"%}"></script>
+{% endblock %}
