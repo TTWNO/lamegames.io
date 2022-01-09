@@ -28,11 +28,12 @@ urlpatterns = [
     #path('chat/', include('chat.urls')),
     #path('games/', include('games.urls')),
     #path('chess/', include('chess.urls'))
-    *[path(game["url"] + "/", include(game["urls"])) for game in settings.VISIBLE_GAME_LINKS]
+    *[path(game["url_name"], include(game["module"] + ".urls")) for game in settings.GAMES]
 ]
 
 websocket_urlpatterns = [
-    re_path(r'ws/chat/(?P<room_name>\w+)/$', chat.consumers.ChatConsumer.as_asgi()),
-    path('rps/<id>', rps.consumers.RPSConsumer.as_asgi()),
-    path('minesweeper/', minesweeper.consumers.MinesweeperConsumer.as_asgi())
+    *[x for game in settings.GAMES for x in __import__(game["module"] + ".urls").urls.websocket_urlpatterns],
+    #re_path(r'ws/chat/(?P<room_name>\w+)/$', chat.consumers.ChatConsumer.as_asgi()),
+    #path('rps/<id>', rps.consumers.RPSConsumer.as_asgi()),
+    #path('minesweeper/', minesweeper.consumers.MinesweeperConsumer.as_asgi()),
 ]

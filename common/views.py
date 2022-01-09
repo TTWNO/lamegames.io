@@ -20,7 +20,7 @@ from .models import LameUser
 def index(request):
     if request.user.is_authenticated:
         return render(request, "signed_in.html", {
-          "games": settings.VISIBLE_GAME_LINKS,
+          "games": settings.GAMES,
         })
     else:
         return render(request, "index.html")

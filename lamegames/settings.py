@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     "common",
     "channels",
     "chat",
-    "chess",
     "minesweeper",
     "rps",
     "games",
@@ -48,26 +47,21 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
-VISIBLE_GAME_LINKS = [
+GAMES = [
   {
-    "urls": "minesweeper.urls",
-    "url": "minesweeper",
+    "module": "minesweeper",
+    "url_name": "minesweeper",
     "name": "Minesweeper (Single-Player)",
   },
   {
-    "urls": "rps.urls",
-    "url": "rps",
+    "module": "rps",
+    "url_name": "rps",
     "name": "Rock, Paper, Scissors",
   },
   {
-    "urls": "chat.urls",
-    "url": "chat",
+    "module": "chat",
+    "url_name": "chat",
     "name": "Chat",
-  },
-  {
-    "urls": "chess.urls",
-    "url": "chess",
-    "name": "Chess",
   },
 ]
 
