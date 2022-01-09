@@ -48,6 +48,12 @@ INSTALLED_APPS = [
 ]
 
 GAMES = [
+  # TODO: comment this out
+  {
+    "module": "skel",
+    "url_name": "skel",
+    "name": "Skeleton Game",
+  },
   {
     "module": "minesweeper",
     "url_name": "minesweeper",
