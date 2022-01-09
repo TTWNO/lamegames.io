@@ -1,0 +1,28 @@
+<label for="statusbox">
+    <h2>Status:</h2>
+</label>
+<div id="statusbox" contenteditable="false" spellcheck="false" aria-multiline="true" aria-live="polite">
+    Welcome!<br>
+</div>
+<label for="logbox">
+    <h2>Game Log:</h2>
+</label>
+<div id="logbox" contenteditable="false" spellcheck="false" aria-multiline="true">
+    Welcome!<br>
+</div>
+<script>
+const LOG_BOX = document.getElementById("logbox");
+const STATUS_BOX = document.getElementById("statusbox");
+
+const write_message = (mess) => {
+    LOG_BOX.innerHTML += mess + "<br>";
+    LOG_BOX.scrollTop = STATUS_BOX.scrollHeight;
+    STATUS_BOX.innerHTML = mess;
+}
+const clear_statusbox = () => {
+    LOG_BOX.innerHTML = '';
+    STATUS_BOX.innerHTML = mess;
+    write_message('<i>Status Cleared</i>');
+}
+
+</script>
