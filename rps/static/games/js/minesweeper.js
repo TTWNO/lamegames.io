@@ -95,6 +95,20 @@ const send_click = (e, event_type) => {
     ));
 };
 
+const say_row = (row) => {
+    write_message("row " + row);
+}
+const say_col = (col) => {
+    write_message("column " + col);
+}
+
+const is_y_change = (key) => {
+    return key === "w" || key === "s";
+}
+const is_x_change = (key) => {
+    return key === "a" || key === "d";
+}
+
 const moving_key_handler = (e) => {
     if (e.key === 'f') {
         send_click(e, 'flagged');
@@ -128,6 +142,13 @@ const moving_key_handler = (e) => {
         new_y < 0 || new_y > 9)
     {
         return;
+    } else {
+        /* if valid move, speak new row/col */
+        if (is_y_change(e.key)) {
+            say_row(new_y);
+        } else if (is_x_change(e.key)) {
+            say_col(new_x);
+        }
     }
 
     new_id = (new_y*10) + new_x;
